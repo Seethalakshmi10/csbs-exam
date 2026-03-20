@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSBS – Level 2 Exam</title>
+<!-- Firebase SDK -->
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script>
+window._fbReady = false;
+window._fbPendingWrites = [];
+
+var firebaseConfig = {
+  apiKey: "AIzaSyBfGhdegjBDTpACt_gMAVPbjHk_48T92bc",
+  authDomain: "csbs-exam.firebaseapp.com",
+  projectId: "csbs-exam",
+  storageBucket: "csbs-exam.firebasestorage.app",
+  messagingSenderId: "197888603343",
+  appId: "1:197888603343:web:ff50b66fadce153c62b3ba"
+};
+
+window.addEventListener('load', function(){
+  try {
+    firebase.initializeApp(firebaseConfig);
+    window._fbDB = firebase.firestore();
+    window._fbReady = true;
+    console.log("✅ Firebase ready!");
+    window._fbPendingWrites.forEach(function(fn){ fn(); });
+    window._fbPendingWrites = [];
+  } catch(e) {
+    console.warn("Firebase init error:", e);
+  }
+});
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060a10;--bg2:#0d1421;--bg3:#111b2e;
+  --surface:#162035;--surface2:#1c2a42;
+  --border:#1e3a5f;
+  --accent:#00d4ff;--accent2:#0088cc;--accent3:#00ff88;
+  --warn:#ffaa00;--danger:#ff3355;
+  --text:#e8f4ff;--text2:#8ab4d4;--text3:#4a7a9b;
+  --glow:0 0 20px rgba(0,212,255,0.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.025) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--accent2);border-radius:3px;}
+
+/* ── PAGES ── */
+.page{display:none;position:relative;z-index:1;min-height:100vh;flex-direction:column;}
+.page.active{display:flex;}
+
+/* ── TOAST ── */
+#toast{position:fixed;top:18px;right:18px;padding:12px 22px;font-family:'Rajdhani';font-weight:700;font-size:0.95rem;letter-spacing:1px;z-index:99999;transform:translateX(200%);transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);max-width:340px;}
+#toast.show{transform:translateX(0);}
+#toast.err{background:var(--danger);color:#fff;}
+#toast.ok{background:var(--accent3);color:#030a05;}
+#toast.war{background:var(--warn);color:#0a0600;}
+#toast.inf{background:var(--accent);color:#020a10;}
+
+/* ── BUTTONS ── */
+.btn{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.95rem;letter-spacing:2px;text-transform:uppercase;padding:11px 30px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;position:relative;overflow:hidden;transition:color 0.3s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+.btn::before{content:'';position:absolute;inset:0;background:var(--accent);transform:translateX(-101%);transition:transform 0.3s;z-index:-1;}
+.btn:hover:not(:disabled){color:var(--bg);box-shadow:var(--glow);}.btn:hover:not(:disabled)::before{transform:translateX(0);}
+.btn:disabled{opacity:0.35;cursor:not-allowed;}
+.btn.g{border-color:var(--accent3);color:var(--accent3);}.btn.g::before{background:var(--accent3);}
+.btn.r{border-color:var(--danger);color:var(--danger);}.btn.r::before{background:var(--danger);}
+.btn.y{border-color:var(--warn);color:var(--warn);}.btn.y::before{background:var(--warn);}
+
+/* ── INPUT ── */
+.fi{margin-bottom:18px;}
+.fi label{display:block;font-size:0.74rem;letter-spacing:3px;color:var(--accent);margin-bottom:7px;text-transform:uppercase;}
+.fi input{width:100%;background:var(--surface);border:1px solid var(--border);border-bottom:2px solid var(--accent2);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:1rem;padding:11px 15px;outline:none;transition:all 0.25s;}
+.fi input:focus{border-color:var(--accent);background:var(--surface2);box-shadow:var(--glow);}
+
+/* ══════════════ LOGIN PAGE ══════════════ */
+#loginPage{justify-content:center;align-items:center;padding:24px 16px;}
+.login-wrap{width:100%;max-width:460px;margin:auto;}
+
+.level-badge{
+  text-align:center;
+  font-family:'Orbitron',sans-serif;
+  font-size:0.72rem;
+  letter-spacing:6px;
+  color:var(--warn);
+  background:rgba(255,170,0,0.08);
+  border:1px solid rgba(255,170,0,0.3);
+  padding:6px 20px;
+  margin-bottom:6px;
+  clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+  animation:lvlPulse 2s ease-in-out infinite;
+}
+@keyframes lvlPulse{0%,100%{box-shadow:0 0 8px rgba(255,170,0,0.2);}50%{box-shadow:0 0 20px rgba(255,170,0,0.5);}}
+
+.logo-big{font-family:'Orbitron',sans-serif;font-size:3.6rem;font-weight:900;color:var(--accent);text-shadow:0 0 30px rgba(0,212,255,0.55),0 0 60px rgba(0,212,255,0.2);letter-spacing:14px;text-align:center;line-height:1;}
+.logo-sm{font-size:0.7rem;letter-spacing:4px;color:var(--text3);text-transform:uppercase;text-align:center;margin-top:5px;}
+
+.login-card{background:var(--bg2);border:1px solid var(--border);padding:36px 36px 32px;position:relative;margin-top:18px;}
+.login-card::before,.login-card::after{content:'';position:absolute;width:36px;height:36px;border-color:var(--accent);border-style:solid;}
+.login-card::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
+.login-card::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
+
+.wtitle{font-size:1.15rem;font-weight:700;text-align:center;letter-spacing:1px;margin-bottom:3px;}
+.wsub{font-size:0.83rem;color:var(--text2);text-align:center;letter-spacing:2px;margin-bottom:24px;}
+
+/* ══════════════ RULES PAGE ══════════════ */
+#rulesPage{justify-content:center;align-items:center;padding:24px 16px;}
+.rules-wrap{width:100%;max-width:560px;margin:auto;}
+.rules-card{background:var(--bg2);border:1px solid var(--border);padding:36px;position:relative;}
+.rules-card::before,.rules-card::after{content:'';position:absolute;width:36px;height:36px;border-color:var(--accent);border-style:solid;}
+.rules-card::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
+.rules-card::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
+.rules-title{font-family:'Orbitron',sans-serif;font-size:1.1rem;color:var(--accent);letter-spacing:4px;text-align:center;margin-bottom:6px;}
+.rules-sub{font-size:0.8rem;color:var(--text3);text-align:center;letter-spacing:3px;text-transform:uppercase;margin-bottom:26px;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
+.info-box{background:var(--surface);border:1px solid var(--border);padding:14px 16px;text-align:center;}
+.info-val{font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:700;color:var(--accent3);}
+.info-lbl{font-size:0.68rem;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-top:3px;}
+
+.rules-list{list-style:none;margin-bottom:24px;}
+.rules-list li{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-left:2px solid var(--border);margin-bottom:8px;font-size:0.93rem;color:var(--text2);line-height:1.5;background:var(--surface);}
+.rules-list li .ri{font-size:1.1rem;flex-shrink:0;margin-top:1px;}
+.rules-list li.warn-rule{border-left-color:var(--warn);color:#ffd080;}
+.rules-list li.danger-rule{border-left-color:var(--danger);color:#ff8099;}
+
+.qtypes-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:24px;}
+.qtype-chip{background:var(--surface);border:1px solid var(--border);padding:8px 12px;text-align:center;font-size:0.78rem;letter-spacing:1px;}
+.qtype-chip .qt-icon{font-size:1.2rem;display:block;margin-bottom:4px;}
+.qtype-chip .qt-name{color:var(--accent);font-weight:700;font-size:0.73rem;letter-spacing:2px;text-transform:uppercase;}
+.qtype-chip .qt-desc{color:var(--text3);font-size:0.7rem;margin-top:2px;}
+
+.agree-row{display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border:1px solid var(--border);margin-bottom:20px;cursor:pointer;user-select:none;}
+.agree-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent3);cursor:pointer;flex-shrink:0;}
+.agree-row span{font-size:0.9rem;color:var(--text2);line-height:1.4;}
+
+/* ══════════════ SUBJECT PAGE ══════════════ */
+#subjectPage{justify-content:center;align-items:center;padding:32px 16px;}
+.subj-wrap{max-width:560px;width:100%;margin:auto;text-align:center;}
+.subj-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px auto;}
+.subj-card{background:var(--surface);border:1px solid var(--border);padding:28px 16px;cursor:pointer;transition:all 0.25s;}
+.subj-card:hover{border-color:var(--accent);box-shadow:var(--glow);transform:translateY(-3px);}
+.subj-card.sel{border-color:var(--accent3);background:rgba(0,255,136,0.05);box-shadow:0 0 18px rgba(0,255,136,0.2);}
+.sicon{font-size:2.2rem;display:block;margin-bottom:8px;}
+.sname{font-family:'Orbitron',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:3px;}
+
+/* ══════════════ EXAM PAGE ══════════════ */
+#examPage{flex-direction:column;}
+.exam-hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:11px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+.exam-logo-wrap{display:flex;flex-direction:column;line-height:1;}
+.exam-logo{font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:900;color:var(--accent);letter-spacing:5px;}
+.exam-lvl{font-size:0.6rem;letter-spacing:4px;color:var(--warn);text-transform:uppercase;margin-top:2px;}
+.exam-meta{display:flex;align-items:center;gap:18px;font-size:0.82rem;color:var(--text2);}
+.exam-meta strong{color:var(--text);}
+.timer-box{background:var(--surface);border:1px solid var(--border);padding:6px 16px;font-family:'JetBrains Mono',monospace;font-size:1.25rem;font-weight:700;color:var(--accent3);letter-spacing:2px;}
+.timer-box.urg{color:var(--danger);border-color:var(--danger);animation:urgAnim 0.5s infinite;}
+@keyframes urgAnim{0%,100%{box-shadow:0 0 8px rgba(255,51,85,0.3);}50%{box-shadow:0 0 22px rgba(255,51,85,0.7);}}
+.pb-wrap{height:3px;background:var(--surface);}
+.pb-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent3));transition:width 0.4s;}
+
+.exam-body{flex:1;padding:24px;max-width:900px;width:100%;margin:0 auto;}
+
+.qcard{background:var(--bg2);border:1px solid var(--border);padding:26px 28px;margin-bottom:22px;position:relative;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.qcard.fill::before{background:var(--accent);}
+.qcard.logic::before{background:var(--accent3);}
+.qcard.judge::before{background:var(--warn);}
+.qcard.bug::before{background:var(--danger);}
+.qcard.game::before{background:#b464ff;}
+
+.qtag{display:inline-block;font-size:0.65rem;letter-spacing:3px;text-transform:uppercase;padding:2px 11px;margin-bottom:10px;font-family:'JetBrains Mono',monospace;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);}
+.tg-fill{background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid var(--accent);}
+.tg-logic{background:rgba(0,255,136,0.1);color:var(--accent3);border:1px solid var(--accent3);}
+.tg-judge{background:rgba(255,170,0,0.1);color:var(--warn);border:1px solid var(--warn);}
+.tg-bug{background:rgba(255,51,85,0.1);color:var(--danger);border:1px solid var(--danger);}
+.tg-game{background:rgba(180,100,255,0.1);color:#b464ff;border:1px solid #b464ff;}
+
+.qnum{font-family:'JetBrains Mono',monospace;font-size:0.67rem;color:var(--text3);letter-spacing:3px;margin-bottom:4px;}
+.qtitle{font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:10px;}
+.qproblem{font-size:0.91rem;color:var(--text2);line-height:1.7;margin-bottom:12px;padding:11px 14px;background:var(--surface);border-left:3px solid var(--accent2);white-space:pre-line;}
+.qcode{background:#070c15;border:1px solid var(--border);border-left:3px solid var(--accent2);padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:#7dd3fc;white-space:pre;overflow-x:auto;margin-bottom:14px;line-height:1.7;}
+.qrestrict{background:rgba(255,51,85,0.05);border:1px solid rgba(255,51,85,0.2);padding:9px 13px;margin-bottom:10px;font-size:0.85rem;color:#ff8099;white-space:pre-line;}
+.qhint{background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.2);padding:9px 13px;margin-bottom:10px;font-size:0.85rem;color:var(--accent3);}
+.qexample{background:var(--surface);border:1px solid var(--border);padding:9px 13px;margin-bottom:12px;font-family:'JetBrains Mono',monospace;font-size:0.79rem;color:var(--text2);line-height:1.7;white-space:pre;}
+.qquestion{font-size:0.94rem;font-weight:600;color:var(--accent3);margin-bottom:14px;line-height:1.6;white-space:pre-line;}
+
+.sols-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:14px;}
+.sol-block{background:#070c15;border:1px solid var(--border);padding:13px;}
+.sol-lbl{font-size:0.67rem;letter-spacing:3px;color:var(--warn);text-transform:uppercase;margin-bottom:7px;font-family:'JetBrains Mono',monospace;}
+.sol-code{font-family:'JetBrains Mono',monospace;font-size:0.76rem;color:#7dd3fc;white-space:pre;overflow-x:auto;line-height:1.6;}
+
+.ans-lbl{font-size:0.7rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:9px;}
+.ans-lbl::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.jbtns{display:flex;gap:9px;margin-bottom:11px;}
+.jbtn{flex:1;padding:10px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.9rem;letter-spacing:2px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
+.jbtn:hover{border-color:var(--accent);color:var(--accent);}
+.jbtn.jsel{border-color:var(--accent3);color:var(--accent3);background:rgba(0,255,136,0.07);}
+
+/* ANSWER TEXTAREA */
+.ans-ta{
+  width:100%;background:var(--surface);
+  border:1px solid var(--border);border-bottom:2px solid var(--accent2);
+  color:var(--text);caret-color:var(--accent3);
+  font-family:'JetBrains Mono',monospace;font-size:0.85rem;
+  padding:13px 15px;outline:none;resize:vertical;line-height:1.65;
+  transition:border-color 0.25s,background 0.25s,box-shadow 0.25s;
+  min-height:80px;
+}
+.ans-ta:focus{border-color:var(--accent);background:var(--surface2);box-shadow:var(--glow);}
+.ans-ta::placeholder{color:transparent;}
+
+.cc{text-align:right;font-size:0.68rem;color:var(--text3);margin-top:3px;font-family:'JetBrains Mono',monospace;}
+
+.exam-foot{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-top:1px solid var(--border);background:var(--bg2);flex-wrap:wrap;gap:10px;}
+.ans-cnt{color:var(--text3);font-size:0.83rem;letter-spacing:1px;}
+.ans-cnt span{color:var(--accent3);font-weight:700;font-family:'JetBrains Mono',monospace;}
+
+/* ══════════════ WARNING OVERLAY ══════════════ */
+#warnOv{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9000;display:none;justify-content:center;align-items:center;backdrop-filter:blur(5px);}
+#warnOv.show{display:flex;}
+.warn-box{background:var(--bg2);border:2px solid var(--warn);padding:40px 34px;text-align:center;max-width:400px;box-shadow:0 0 60px rgba(255,170,0,0.3);animation:shake 0.45s ease;}
+.warn-icon{font-size:2.8rem;margin-bottom:12px;}
+.warn-title{font-family:'Orbitron',sans-serif;font-size:1.2rem;color:var(--warn);margin-bottom:10px;letter-spacing:3px;}
+.warn-msg{color:var(--text2);line-height:1.6;margin-bottom:20px;font-size:0.9rem;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);}}
+
+/* ══════════════ FEEDBACK PAGE ══════════════ */
+#feedbackPage{justify-content:center;align-items:center;padding:32px 16px;}
+.fb-wrap{max-width:520px;width:100%;margin:auto;}
+.fb-card{background:var(--bg2);border:1px solid var(--border);padding:36px;position:relative;}
+.fb-card::before,.fb-card::after{content:'';position:absolute;width:34px;height:34px;border-color:var(--accent3);border-style:solid;}
+.fb-card::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
+.fb-card::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
+.fb-title{font-family:'Orbitron',sans-serif;font-size:1.1rem;color:var(--accent3);letter-spacing:4px;text-align:center;margin-bottom:4px;}
+.fb-sub{font-size:0.78rem;color:var(--text3);text-align:center;letter-spacing:3px;text-transform:uppercase;margin-bottom:26px;}
+
+.star-row{display:flex;justify-content:center;gap:10px;margin-bottom:20px;}
+.star{font-size:2.2rem;cursor:pointer;transition:transform 0.15s;filter:grayscale(1);opacity:0.4;}
+.star.active{filter:grayscale(0);opacity:1;transform:scale(1.15);}
+.star:hover{transform:scale(1.2);}
+
+.fb-ta{width:100%;background:var(--surface);border:1px solid var(--border);border-bottom:2px solid var(--accent2);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:1rem;padding:12px 15px;outline:none;resize:vertical;min-height:90px;line-height:1.6;transition:all 0.25s;margin-bottom:18px;}
+.fb-ta:focus{border-color:var(--accent3);background:var(--surface2);box-shadow:0 0 18px rgba(0,255,136,0.2);}
+.fb-ta::placeholder{color:var(--text3);}
+
+/* ══════════════ THANK YOU PAGE ══════════════ */
+#tyPage{justify-content:center;align-items:center;padding:32px 16px;text-align:center;}
+.ty-inner{max-width:500px;margin:auto;}
+.ty-icon{font-size:4.5rem;animation:floatAnim 3s ease-in-out infinite;margin-bottom:20px;}
+@keyframes floatAnim{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.ty-title{font-family:'Orbitron',sans-serif;font-size:1.9rem;font-weight:900;color:var(--accent);letter-spacing:4px;margin-bottom:12px;text-shadow:var(--glow);}
+.ty-sub{font-size:1.05rem;color:var(--accent3);margin-bottom:22px;letter-spacing:2px;}
+.ty-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px;max-width:440px;margin:0 auto 22px;}
+.ty-st{background:var(--surface);border:1px solid var(--border);padding:13px 10px;}
+.ty-sv{font-family:'Orbitron',sans-serif;font-size:1.2rem;color:var(--accent);font-weight:700;}
+.ty-sl{font-size:0.65rem;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-top:3px;}
+.ty-quote{font-size:0.88rem;color:var(--text2);line-height:1.7;padding:16px;border-left:3px solid var(--accent2);text-align:left;max-width:440px;margin:0 auto 26px;}
+.ty-feedback-shown{background:var(--surface);border:1px solid var(--border);padding:14px 18px;max-width:440px;margin:0 auto 22px;text-align:left;}
+.ty-fb-stars{font-size:1.4rem;margin-bottom:6px;}
+.ty-fb-text{font-size:0.87rem;color:var(--text2);font-style:italic;line-height:1.5;}
+
+/* ══════════════ ADMIN ══════════════ */
+#adminLoginPage{justify-content:center;align-items:center;padding:20px;}
+.adm-login{max-width:380px;width:100%;background:var(--bg2);border:1px solid var(--border);padding:36px;position:relative;margin:auto;}
+.adm-login::before,.adm-login::after{content:'';position:absolute;width:28px;height:28px;border-color:var(--accent);border-style:solid;}
+.adm-login::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
+.adm-login::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
+
+#adminPage{flex-direction:column;}
+.adm-hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+.adm-logo{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:var(--accent);letter-spacing:4px;}
+.adm-logo small{color:var(--text3);font-size:0.6rem;letter-spacing:3px;display:block;margin-top:2px;}
+.ldot{display:inline-block;width:7px;height:7px;background:var(--accent3);border-radius:50%;margin-right:5px;animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.15;}}
+.adm-tabs{display:flex;gap:3px;background:var(--surface);padding:3px;border:1px solid var(--border);}
+.adm-tab{padding:6px 16px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.78rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;color:var(--text2);background:transparent;border:none;}
+.adm-tab.on{background:var(--accent);color:var(--bg);}
+.adm-body{flex:1;padding:24px;overflow-y:auto;}
+.atp{display:none;}.atp.on{display:block;}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:24px;}
+.sc{background:var(--bg2);border:1px solid var(--border);padding:16px;position:relative;overflow:hidden;}
+.sc::after{content:'';position:absolute;top:0;right:0;width:3px;height:100%;}
+.sc.c1::after{background:var(--accent3);}.sc.c2::after{background:var(--warn);}.sc.c3::after{background:var(--danger);}.sc.c4::after{background:var(--accent);}.sc.c5::after{background:var(--text3);}
+.sv{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:700;color:var(--text);line-height:1;}
+.sl{font-size:0.67rem;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-top:4px;}
+.stitle{font-family:'Orbitron',sans-serif;font-size:0.82rem;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.stitle::after{content:'';flex:1;height:1px;background:var(--border);}
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+thead th{background:var(--surface);color:var(--accent);font-size:0.65rem;letter-spacing:3px;text-transform:uppercase;padding:10px 13px;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.2s;}
+tbody tr:hover{background:var(--surface);}
+tbody td{padding:9px 13px;color:var(--text2);vertical-align:middle;white-space:nowrap;}
+tbody td:first-child{color:var(--text);font-weight:600;}
+.sb{display:inline-block;padding:2px 9px;font-size:0.63rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);}
+.ba{background:rgba(0,255,136,0.1);color:var(--accent3);border:1px solid var(--accent3);}
+.bw{background:rgba(255,170,0,0.1);color:var(--warn);border:1px solid var(--warn);}
+.bd{background:rgba(255,51,85,0.1);color:var(--danger);border:1px solid var(--danger);}
+.bs{background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid var(--accent);}
+.bo{background:rgba(74,122,155,0.1);color:var(--text3);border:1px solid var(--text3);}
+.minp{width:64px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.85rem;padding:4px 8px;text-align:center;outline:none;}
+.minp:focus{border-color:var(--accent);}
+.abtn{font-family:'Rajdhani',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:2px;padding:4px 11px;border:1px solid var(--accent3);background:transparent;color:var(--accent3);cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+.abtn:hover{background:var(--accent3);color:var(--bg);}
+.abtn.v{border-color:var(--accent);color:var(--accent);}.abtn.v:hover{background:var(--accent);color:var(--bg);}
+.lb-tbl tbody tr:nth-child(1) td{color:#ffd700;}
+.lb-tbl tbody tr:nth-child(2) td{color:#c0c0c0;}
+.lb-tbl tbody tr:nth-child(3) td{color:#cd7f32;}
+
+/* VISUAL LEADERBOARD */
+.lb-wrap{padding:4px 0;}
+.lb-empty{text-align:center;color:var(--text3);padding:48px;font-size:0.9rem;letter-spacing:2px;}
+.lb-podium{display:flex;align-items:flex-end;justify-content:center;gap:12px;margin-bottom:36px;padding:0 20px;}
+.pod-block{display:flex;flex-direction:column;align-items:center;flex:1;max-width:180px;}
+.pod-name{font-weight:700;font-size:0.9rem;color:var(--text);text-align:center;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.pod-college{font-size:0.68rem;color:var(--text3);text-align:center;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.pod-score{font-family:'Orbitron',sans-serif;font-weight:900;margin-bottom:6px;text-align:center;}
+.pod-base{width:100%;display:flex;align-items:center;justify-content:center;border-radius:2px 2px 0 0;position:relative;transition:all 0.5s;}
+.pod-rank-icon{font-size:1.8rem;position:absolute;top:-28px;}
+.pod-1 .pod-base{background:linear-gradient(to top,#b8860b,#ffd700);min-height:120px;}
+.pod-2 .pod-base{background:linear-gradient(to top,#707070,#c0c0c0);min-height:90px;}
+.pod-3 .pod-base{background:linear-gradient(to top,#8b4513,#cd7f32);min-height:70px;}
+.pod-1 .pod-score{color:#ffd700;font-size:1.5rem;}
+.pod-2 .pod-score{color:#c0c0c0;font-size:1.3rem;}
+.pod-3 .pod-score{color:#cd7f32;font-size:1.1rem;}
+.pod-sub-lbl{font-size:0.65rem;color:rgba(0,0,0,0.6);letter-spacing:2px;text-transform:uppercase;font-family:'Rajdhani',sans-serif;font-weight:700;}
+.pod-floor{height:4px;background:linear-gradient(90deg,var(--accent2),var(--accent3));width:100%;margin-bottom:24px;}
+
+.lb-bars{padding:0 8px;}
+.bar-row{display:flex;align-items:center;gap:14px;margin-bottom:12px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;}
+.bar-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.bar-row.r1::before{background:#ffd700;}
+.bar-row.r2::before{background:#c0c0c0;}
+.bar-row.r3::before{background:#cd7f32;}
+.bar-row.rn::before{background:var(--border);}
+.bar-rank{font-family:'Orbitron',sans-serif;font-size:0.8rem;font-weight:700;width:28px;text-align:center;flex-shrink:0;}
+.bar-info{flex:1;min-width:0;}
+.bar-name{font-weight:700;font-size:0.95rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-meta{font-size:0.72rem;color:var(--text3);margin-top:2px;letter-spacing:1px;}
+.bar-track{flex:2;background:var(--surface);height:22px;position:relative;min-width:80px;}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent3));transition:width 0.8s cubic-bezier(0.25,0.46,0.45,0.94);position:relative;}
+.bar-fill::after{content:'';position:absolute;top:0;right:0;bottom:0;width:3px;background:rgba(255,255,255,0.4);}
+.bar-marks{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:var(--accent3);width:52px;text-align:right;flex-shrink:0;}
+.bar-row.r1 .bar-fill{background:linear-gradient(90deg,#b8860b,#ffd700);}
+.bar-row.r2 .bar-fill{background:linear-gradient(90deg,#707070,#c0c0c0);}
+.bar-row.r3 .bar-fill{background:linear-gradient(90deg,#8b4513,#cd7f32);}
+.lb-section-title{font-size:0.72rem;letter-spacing:4px;color:var(--text3);text-transform:uppercase;margin:0 8px 14px;display:flex;align-items:center;gap:10px;}
+.lb-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.marks-updated{animation:markFlash 0.6s ease;}
+@keyframes markFlash{0%{background:rgba(0,255,136,0.2);}100%{background:transparent;}}
+
+#ansModal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9500;display:none;justify-content:center;align-items:flex-start;padding:36px 16px;overflow-y:auto;backdrop-filter:blur(4px);}
+#ansModal.show{display:flex;}
+.ans-modal{background:var(--bg2);border:1px solid var(--border);max-width:780px;width:100%;padding:28px;position:relative;}
+.mcls{position:absolute;top:12px;right:12px;background:transparent;border:1px solid var(--border);color:var(--text2);font-size:1rem;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.mcls:hover{border-color:var(--danger);color:var(--danger);}
+.rev-q{background:var(--surface);border:1px solid var(--border);padding:14px 16px;margin-bottom:10px;}
+.rev-qt{font-size:0.7rem;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-family:'JetBrains Mono',monospace;}
+.rev-qq{font-size:0.86rem;color:var(--text2);margin-bottom:8px;line-height:1.5;}
+.rev-a{background:var(--bg3);border-left:3px solid var(--accent3);padding:9px 13px;font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text);white-space:pre-wrap;line-height:1.6;}
+.rev-a.empty{color:var(--text3);font-style:italic;border-left-color:var(--text3);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{animation:fadeUp 0.4s ease;}
+
+.fb-setup-banner{
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:linear-gradient(135deg,#1a0a00,#2a1500);
+  border-top:2px solid var(--warn);
+  padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+}
+.fb-setup-banner .fb-msg{font-size:0.85rem;color:var(--warn);letter-spacing:1px;flex:1;}
+.fb-setup-banner .fb-msg strong{font-family:'Orbitron',sans-serif;font-size:0.8rem;letter-spacing:3px;}
+.setup-page{justify-content:center;align-items:flex-start;padding:24px 16px;overflow-y:auto;}
+.setup-wrap{max-width:700px;width:100%;margin:auto;}
+.setup-card{background:var(--bg2);border:1px solid var(--border);padding:32px;margin-bottom:20px;position:relative;}
+.setup-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);}
+.setup-step{display:flex;gap:16px;margin-bottom:18px;align-items:flex-start;}
+.step-num{font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:900;color:var(--accent);width:36px;flex-shrink:0;margin-top:2px;}
+.step-body{flex:1;}
+.step-title{font-weight:700;font-size:1rem;color:var(--text);margin-bottom:4px;}
+.step-desc{font-size:0.88rem;color:var(--text2);line-height:1.6;}
+.step-link{color:var(--accent);text-decoration:none;letter-spacing:1px;}
+.step-link:hover{text-decoration:underline;}
+.code-snippet{background:#050a12;border:1px solid var(--border);border-left:3px solid var(--accent3);padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:#7dd3fc;margin-top:10px;white-space:pre;overflow-x:auto;line-height:1.7;position:relative;}
+.copy-snip{position:absolute;top:8px;right:8px;background:var(--surface);border:1px solid var(--border);color:var(--accent3);font-family:'Rajdhani',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:2px;padding:3px 10px;cursor:pointer;text-transform:uppercase;}
+.copy-snip:hover{background:var(--accent3);color:var(--bg);}
+.host-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:14px;}
+.host-card{background:var(--surface);border:1px solid var(--border);padding:16px;}
+.host-name{font-weight:700;font-size:0.9rem;color:var(--accent);margin-bottom:4px;}
+.host-desc{font-size:0.8rem;color:var(--text2);line-height:1.5;}
+.host-badge{display:inline-block;font-size:0.65rem;letter-spacing:2px;padding:2px 8px;margin-bottom:6px;background:rgba(0,255,136,0.1);color:var(--accent3);border:1px solid var(--accent3);}
+@media(max-width:580px){
+  .info-grid{grid-template-columns:1fr 1fr;}
+  .subj-grid{grid-template-columns:1fr 1fr;}
+  .exam-hdr{padding:9px 12px;}
+  .exam-body{padding:14px;}
+  .sols-grid{grid-template-columns:1fr;}
+  .jbtns{flex-direction:column;}
+  .logo-big{font-size:2.8rem;letter-spacing:10px;}
+  .adm-tabs{flex-wrap:wrap;}
+}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- WARNING OVERLAY -->
+<div id="warnOv">
+  <div class="warn-box">
+    <div class="warn-icon">⚠️</div>
+    <div class="warn-title" id="wTitle">VIOLATION</div>
+    <div class="warn-msg" id="wMsg"></div>
+    <button class="btn y" id="wAck" onclick="ackWarn()">ACKNOWLEDGE</button>
+  </div>
+</div>
+
+<!-- ANSWER REVIEW MODAL -->
+<div id="ansModal">
+  <div class="ans-modal">
+    <button class="mcls" onclick="closeModal()">✕</button>
+    <div class="stitle" style="margin-bottom:20px">ANSWER REVIEW</div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ══ LOGIN PAGE ══ -->
+<div class="page active" id="loginPage">
+  <div class="login-wrap fade-up">
+    <div class="level-badge">⚡ LEVEL 2</div>
+    <div class="logo-big">CSBS</div>
+    <div class="logo-sm">Computer Science &amp; Business Systems</div>
+    <div class="login-card">
+      <div class="wtitle">Welcome to CSBS Code Challenge</div>
+      <div class="wsub">Test your skills · Level 2</div>
+      <div class="fi"><label>Participant Name</label><input type="text" id="lName" placeholder="Enter your full name" autocomplete="off"></div>
+      <div class="fi"><label>College Name</label><input type="text" id="lCollege" placeholder="Enter your college name" autocomplete="off"></div>
+      <div class="fi"><label>Password</label><input type="password" id="lPass" placeholder="Enter exam password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn g" style="width:100%;display:flex;justify-content:center;" onclick="doLogin()">ENTER EXAM →</button>
+      <div style="text-align:center;margin-top:14px;">
+        <span style="font-size:0.75rem;color:var(--text3);letter-spacing:1px;">Admin? </span>
+        <button onclick="go('adminLoginPage')" style="background:none;border:none;color:var(--accent);font-family:'Rajdhani';font-weight:700;font-size:0.8rem;letter-spacing:2px;cursor:pointer;text-decoration:underline;text-transform:uppercase;">ADMIN PANEL</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RULES PAGE ══ -->
+<div class="page" id="rulesPage">
+  <div class="rules-wrap fade-up" style="margin:auto;padding:24px 16px;">
+    <div class="rules-card">
+      <div class="rules-title">EXAM RULES &amp; INFORMATION</div>
+      <div class="rules-sub">Read carefully before you begin</div>
+
+      <div class="info-grid">
+        <div class="info-box"><div class="info-val">5</div><div class="info-lbl">Questions</div></div>
+        <div class="info-box"><div class="info-val">30<span style="font-size:1rem">min</span></div><div class="info-lbl">Duration</div></div>
+      </div>
+
+      <div style="font-size:0.72rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Question Types</div>
+      <div class="qtypes-row">
+        <div class="qtype-chip"><span class="qt-icon">📝</span><div class="qt-name" style="color:var(--accent)">Fill Blanks</div><div class="qt-desc">Complete the code</div></div>
+        <div class="qtype-chip"><span class="qt-icon">🧠</span><div class="qt-name" style="color:var(--accent3)">Logic</div><div class="qt-desc">No if/else/loops</div></div>
+        <div class="qtype-chip"><span class="qt-icon">⚖️</span><div class="qt-name" style="color:var(--warn)">Judge Code</div><div class="qt-desc">Pick best solution</div></div>
+        <div class="qtype-chip"><span class="qt-icon">🐛</span><div class="qt-name" style="color:var(--danger)">Bug Fix</div><div class="qt-desc">Find &amp; fix the bug</div></div>
+        <div class="qtype-chip"><span class="qt-icon">🎮</span><div class="qt-name" style="color:#b464ff">Game Logic</div><div class="qt-desc">Score calculator</div></div>
+      </div>
+
+      <div style="font-size:0.72rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Rules</div>
+      <ul class="rules-list">
+        <li><span class="ri">⏱️</span><span>30 minutes total. Timer starts once exam begins. Auto-submits when time ends.</span></li>
+        <li><span class="ri">🔒</span><span>Answer box is hidden — your typed answers are not visible on screen for privacy.</span></li>
+        <li class="warn-rule"><span class="ri">⚠️</span><span><strong>Tab switch detected</strong> → First violation = WARNING shown. Status updated to Warning.</span></li>
+        <li class="danger-rule"><span class="ri">🚫</span><span><strong>Second violation</strong> → Automatic DISQUALIFICATION. Exam ends immediately.</span></li>
+        <li><span class="ri">📤</span><span>Submit your answers before time ends. You can submit anytime.</span></li>
+        <li><span class="ri">💬</span><span>After submission, you will be asked for feedback before seeing the Thank You page.</span></li>
+      </ul>
+
+      <div class="agree-row" onclick="toggleAgree()">
+        <input type="checkbox" id="agreeChk">
+        <span>I have read and understood all the rules. I agree to follow exam guidelines.</span>
+      </div>
+
+      <button class="btn g" id="proceedBtn" onclick="goToSubject()" disabled style="width:100%;display:flex;justify-content:center;">PROCEED TO SUBJECT SELECTION →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SUBJECT PAGE ══ -->
+<div class="page" id="subjectPage">
+  <div class="subj-wrap fade-up">
+    <div style="font-family:'Orbitron',sans-serif;font-size:1.4rem;color:var(--accent);letter-spacing:4px;text-align:center;margin-bottom:4px;">SELECT SUBJECT</div>
+    <div style="font-size:0.8rem;color:var(--text3);letter-spacing:3px;text-transform:uppercase;text-align:center;">Choose your programming language</div>
+    <div class="subj-grid">
+      <div class="subj-card" onclick="pickSub('C')" id="sub-C"><span class="sicon">🔵</span><div class="sname">C</div></div>
+      <div class="subj-card" onclick="pickSub('Java')" id="sub-Java"><span class="sicon">☕</span><div class="sname">JAVA</div></div>
+      <div class="subj-card" onclick="pickSub('Python')" id="sub-Python"><span class="sicon">🐍</span><div class="sname">PYTHON</div></div>
+      <div class="subj-card" onclick="pickSub('CPP')" id="sub-CPP"><span class="sicon">⚡</span><div class="sname">C++</div></div>
+    </div>
+    <div style="text-align:center;">
+      <button class="btn g" id="startBtn" onclick="startExam()" disabled>START EXAM →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EXAM PAGE ══ -->
+<div class="page" id="examPage">
+  <div class="pb-wrap"><div class="pb-fill" id="pb" style="width:0%"></div></div>
+  <div class="exam-hdr">
+    <div class="exam-logo-wrap">
+      <div class="exam-logo">CSBS</div>
+      <div class="exam-lvl">⚡ LEVEL 2</div>
+    </div>
+    <div class="exam-meta">
+      <span id="hSub" style="font-family:'Orbitron',sans-serif;font-size:0.82rem;color:var(--accent);letter-spacing:3px;"></span>
+      <span>NAME: <strong id="hName"></strong></span>
+    </div>
+    <div class="timer-box" id="timerEl">30:00</div>
+    <button class="btn r" onclick="confirmLogout()" style="padding:6px 14px;font-size:0.74rem;">LOGOUT</button>
+  </div>
+  <div class="exam-body" id="examBody"></div>
+  <div class="exam-foot">
+    <div class="ans-cnt">Answered: <span id="ansCnt">0</span> / 5</div>
+    <button class="btn g" onclick="submitExam()">SUBMIT EXAM ✓</button>
+  </div>
+</div>
+
+<!-- ══ FEEDBACK PAGE ══ -->
+<div class="page" id="feedbackPage">
+  <div class="fb-wrap fade-up" style="margin:auto;padding:32px 16px;">
+    <div class="fb-card">
+      <div class="fb-title">FEEDBACK</div>
+      <div class="fb-sub">How was your exam experience?</div>
+
+      <div style="font-size:0.75rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase;text-align:center;margin-bottom:10px;">Rate your experience</div>
+      <div class="star-row" id="starRow">
+        <span class="star" onclick="rateStar(1)">⭐</span>
+        <span class="star" onclick="rateStar(2)">⭐</span>
+        <span class="star" onclick="rateStar(3)">⭐</span>
+        <span class="star" onclick="rateStar(4)">⭐</span>
+        <span class="star" onclick="rateStar(5)">⭐</span>
+      </div>
+      <div id="starLabel" style="text-align:center;font-size:0.8rem;color:var(--text3);margin-bottom:20px;letter-spacing:1px;height:18px;"></div>
+
+      <div style="font-size:0.75rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Your comments (optional)</div>
+      <textarea class="fb-ta" id="fbText" rows="4" placeholder="Share your thoughts about the exam, questions, or suggestions..."></textarea>
+
+      <button class="btn g" style="width:100%;display:flex;justify-content:center;" onclick="submitFeedback()">SUBMIT FEEDBACK →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ THANK YOU PAGE ══ -->
+<div class="page" id="tyPage">
+  <div class="ty-inner fade-up" style="margin:auto;padding:32px 16px;">
+    <div class="ty-icon" id="tyIcon">🚀</div>
+    <div class="ty-title">THANK YOU!</div>
+    <div class="ty-sub" id="tySub">Happy Learning!</div>
+    <div class="ty-stats" id="tyStats"></div>
+    <div class="ty-feedback-shown" id="tyFbShown" style="display:none;">
+      <div style="font-size:0.68rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Your Feedback</div>
+      <div class="ty-fb-stars" id="tyFbStars"></div>
+      <div class="ty-fb-text" id="tyFbText"></div>
+    </div>
+    <div class="ty-quote" id="tyQ"></div>
+    <button class="btn r" onclick="doLogout()" style="display:flex;justify-content:center;margin:0 auto;">LOGOUT</button>
+  </div>
+</div>
+
+<!-- ══ ADMIN LOGIN ══ -->
+<div class="page" id="adminLoginPage">
+  <div style="position:absolute;top:16px;left:16px;z-index:10;">
+    <button class="btn" onclick="go('loginPage')" style="padding:7px 16px;font-size:0.74rem;">← BACK</button>
+  </div>
+  <div class="adm-login">
+    <div class="logo-big" style="font-size:2.2rem;margin-bottom:4px;">CSBS</div>
+    <div class="logo-sm" style="margin-bottom:24px;">Admin Panel</div>
+    <div class="fi"><label>Username</label><input type="text" id="aUser" placeholder="admin" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+    <div class="fi"><label>Password</label><input type="password" id="aPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+    <button class="btn" style="width:100%;display:flex;justify-content:center;" onclick="adminLogin()">ACCESS →</button>
+  </div>
+</div>
+
+<!-- ══ ADMIN DASHBOARD ══ -->
+<div class="page" id="adminPage">
+  <div class="adm-hdr">
+    <div class="adm-logo">CSBS ADMIN<small><span class="ldot"></span>LIVE MONITOR</small></div>
+    <div class="adm-tabs">
+      <button class="adm-tab on" onclick="swTab('overview')">OVERVIEW</button>
+      <button class="adm-tab" onclick="swTab('participants')">PARTICIPANTS</button>
+      <button class="adm-tab" onclick="swTab('feedback')">FEEDBACK</button>
+      <button class="adm-tab" onclick="swTab('leaderboard')">LEADERBOARD</button>
+    </div>
+    <button class="btn r" onclick="adminLogout()" style="padding:6px 14px;font-size:0.74rem;">LOGOUT</button>
+  </div>
+  <div class="adm-body">
+    <div class="atp on" id="tab-overview">
+      <div class="stats-row" id="statsRow"></div>
+      <div class="stitle">REAL-TIME PARTICIPANTS</div>
+      <div class="tw"><table><thead><tr><th>#</th><th>NAME</th><th>COLLEGE</th><th>SUBJECT</th><th>STATUS</th><th>WARNINGS</th><th>LOGIN TIME</th></tr></thead><tbody id="ovTb"></tbody></table></div>
+    </div>
+    <div class="atp" id="tab-participants">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+        <div class="stitle" style="margin-bottom:0;flex:1;">PARTICIPANT MANAGEMENT</div>
+        <button class="btn r" onclick="clearAllData()" style="padding:6px 16px;font-size:0.74rem;">🗑️ CLEAR ALL DATA</button>
+      </div>
+      <div class="tw"><table><thead><tr><th>#</th><th>NAME</th><th>COLLEGE</th><th>SUBJECT</th><th>STATUS</th><th>WARNS</th><th>LOGIN</th><th>SUBMIT</th><th>LOGOUT</th><th>MARKS</th><th>SAVE</th><th>ANSWERS</th><th>DELETE</th></tr></thead><tbody id="ptTb"></tbody></table></div>
+    </div>
+    <div class="atp" id="tab-feedback">
+      <div class="stitle">PARTICIPANT FEEDBACK</div>
+      <div class="tw"><table><thead><tr><th>#</th><th>NAME</th><th>COLLEGE</th><th>SUBJECT</th><th>RATING</th><th>COMMENTS</th></tr></thead><tbody id="fbTb"></tbody></table></div>
+    </div>
+    <div class="atp" id="tab-leaderboard">
+      <div class="stitle">🏆 LEADERBOARD</div>
+      <div id="lbVisual"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// QUESTIONS BANK
+// ══════════════════════════════════════════
+const QS={
+C:[
+{id:'c1',tag:'fill',tc:'tg-fill',cls:'fill',title:'Q1 — Incomplete Project',
+problem:'Find the sum of digits of a number.\nExample: Input: 1234 → Output: 10 (1+2+3+4)',
+code:`#include <stdio.h>
+int main() {
+    int n, sum = 0, digit;
+    scanf("%d", &n);
+    while(n > 0) {
+        digit = _______;      // Blank 1
+        sum = _______;        // Blank 2
+        n = _______;          // Blank 3
+    }
+    printf("%d", sum);
+    return 0;
+}`,
+question:'Fill in the three blanks to complete the program.\nWrite what Blank 1, Blank 2, and Blank 3 should be.',
+type:'text',ph:'Blank 1: ...\nBlank 2: ...\nBlank 3: ...'},
+
+{id:'c2',tag:'logic',tc:'tg-logic',cls:'logic',title:'Q2 — Code Without Keywords',
+problem:'Find Maximum of Two Numbers',
+restrict:'❌ Do NOT use if / else\n❌ Do NOT use for / while loops',
+hint:'💡 Use ternary operator or math logic',
+example:'Input: 5 10\nOutput: 10',
+question:'Write a complete C program to print the maximum of two integers WITHOUT using if/else or any loops.',
+type:'code',ph:'#include <stdio.h>\nint main() {\n    int a, b;\n    scanf("%d %d", &a, &b);\n    // write here\n    return 0;\n}'},
+
+{id:'c3',tag:'judge',tc:'tg-judge',cls:'judge',title:'Q3 — Judge the Code',
+problem:'Check whether a number is a palindrome.\nExample: 121 → Palindrome | 123 → Not Palindrome',
+sols:[
+{l:'Solution A',c:`int n,rev=0,temp,digit;
+scanf("%d",&n); temp=n;
+while(temp>0){
+  digit=temp%10;
+  rev=rev*10+digit;
+  temp=temp/10;
+}
+if(rev==n) printf("Palindrome");
+else printf("Not Palindrome");`},
+{l:'Solution B',c:`char num[100]; int flag=1;
+scanf("%s",num);
+int len=strlen(num);
+for(int i=0;i<len/2;i++)
+  if(num[i]!=num[len-i-1])
+    {flag=0;break;}
+if(flag) printf("Palindrome");
+else printf("Not Palindrome");`},
+{l:'Solution C',c:`int n; scanf("%d",&n);
+if(n==121||n==131||n==141)
+  printf("Palindrome");
+else
+  printf("Not Palindrome");`}],
+question:'Which solution is BEST? Pick A, B, or C.\nJustify: Time Complexity · Space Complexity · Readability',
+type:'judge'},
+
+{id:'c4',tag:'bug',tc:'tg-bug',cls:'bug',title:'Q4 — One Bug, Many Fixes',
+problem:'Find the factorial of a number.\nExample: Input: 5 → Output: 120',
+code:`#include <stdio.h>
+int main() {
+    int n, fact = 0;
+    scanf("%d", &n);
+    for(int i = 1; i <= n; i++) {
+        fact = fact * i;
+    }
+    printf("%d", fact);
+    return 0;
+}`,
+question:'Identify the bug. Write the corrected line and explain why it was wrong.',
+type:'text',ph:'Bug at line: ...\nCorrected: ...\nExplanation: ...'},
+
+{id:'c5',tag:'game',tc:'tg-game',cls:'game',title:'Q5 — Game Logic Problem',
+problem:'3-Round Game Score Calculator\nWin → +10 | Lose → −5 | Draw → 0',
+example:'Input:  W L D\nOutput: 5\n\nInput:  W W W\nOutput: 30',
+question:'Write a complete C program that reads 3 round results (W/L/D) and prints the final score.',
+type:'code',ph:'#include <stdio.h>\nint main() {\n    char r1,r2,r3;\n    scanf("%c %c %c",&r1,&r2,&r3);\n    int score=0;\n    // write here\n    printf("%d",score);\n    return 0;\n}'}
+],
+
+Java:[
+{id:'j1',tag:'fill',tc:'tg-fill',cls:'fill',title:'Q1 — Incomplete Project',
+problem:'Find the sum of digits of a number.\nExample: Input: 1234 → Output: 10 (1+2+3+4)',
+code:`import java.util.Scanner;
+public class SumDigits {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt(), sum = 0, digit;
+        while(n > 0) {
+            digit = _______;      // Blank 1
+            sum = _______;        // Blank 2
+            n = _______;          // Blank 3
+        }
+        System.out.println(sum);
+    }
+}`,
+question:'Fill in the three blanks to complete the Java program.\nWrite what Blank 1, Blank 2, and Blank 3 should be.',
+type:'text',ph:'Blank 1: ...\nBlank 2: ...\nBlank 3: ...'},
+
+{id:'j2',tag:'logic',tc:'tg-logic',cls:'logic',title:'Q2 — Code Without Keywords',
+problem:'Find Maximum of Two Numbers',
+restrict:'❌ Do NOT use if / else\n❌ Do NOT use for / while loops',
+hint:'💡 Use ternary operator or Math.max()',
+example:'Input: 5 10\nOutput: 10',
+question:'Write a complete Java program to print the maximum of two integers WITHOUT using if/else or any loops.',
+type:'code',ph:'import java.util.Scanner;\npublic class MaxTwo {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt(), b = sc.nextInt();\n        // write here\n    }\n}'},
+
+{id:'j3',tag:'judge',tc:'tg-judge',cls:'judge',title:'Q3 — Judge the Code',
+problem:'Check whether a String is a Palindrome.\nExample: "madam" → Palindrome | "hello" → Not Palindrome',
+sols:[
+{l:'Solution A',c:`String s = sc.next();
+String rev = new StringBuilder(s)
+             .reverse().toString();
+if(s.equals(rev))
+  System.out.println("Palindrome");
+else
+  System.out.println("Not Palindrome");`},
+{l:'Solution B',c:`String s = sc.next();
+int l=0, r=s.length()-1;
+boolean flag=true;
+while(l<r){
+  if(s.charAt(l)!=s.charAt(r))
+    {flag=false;break;}
+  l++; r--;
+}
+System.out.println(flag?"Palindrome":"Not Palindrome");`},
+{l:'Solution C',c:`String s = sc.next();
+if(s.equals("madam")||s.equals("racecar"))
+  System.out.println("Palindrome");
+else
+  System.out.println("Not Palindrome");`}],
+question:'Which Java solution is BEST? Pick A, B, or C.\nJustify: Time Complexity · Space Complexity · Readability',
+type:'judge'},
+
+{id:'j4',tag:'bug',tc:'tg-bug',cls:'bug',title:'Q4 — One Bug, Many Fixes',
+problem:'Find the factorial of a number.\nExample: Input: 5 → Output: 120',
+code:`import java.util.Scanner;
+public class Factorial {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+        int fact = 0;
+        for(int i = 1; i <= n; i++) {
+            fact = fact * i;
+        }
+        System.out.println(fact);
+    }
+}`,
+question:'Identify the bug. Write the corrected line and explain why it was wrong.',
+type:'text',ph:'Bug at line: ...\nCorrected: ...\nExplanation: ...'},
+
+{id:'j5',tag:'game',tc:'tg-game',cls:'game',title:'Q5 — Game Logic Problem',
+problem:'3-Round Game Score Calculator\nWin → +10 | Lose → −5 | Draw → 0',
+example:'Input:  W L D\nOutput: 5\n\nInput:  W W W\nOutput: 30',
+question:'Write a complete Java program that reads 3 round results (W/L/D) and prints the final score.',
+type:'code',ph:'import java.util.Scanner;\npublic class GameScore {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        // write here\n    }\n}'}
+],
+
+Python:[
+{id:'py1',tag:'fill',tc:'tg-fill',cls:'fill',title:'Q1 — Incomplete Project',
+problem:'Find the sum of digits of a number.\nExample: Input: 1234 → Output: 10 (1+2+3+4)',
+code:`n = int(input())
+total = 0
+while n > 0:
+    digit = _______      # Blank 1
+    total = _______      # Blank 2
+    n = _______          # Blank 3
+print(total)`,
+question:'Fill in the three blanks to complete the Python program.\nWrite what Blank 1, Blank 2, and Blank 3 should be.',
+type:'text',ph:'Blank 1: ...\nBlank 2: ...\nBlank 3: ...'},
+
+{id:'py2',tag:'logic',tc:'tg-logic',cls:'logic',title:'Q2 — Code Without Keywords',
+problem:'Find Maximum of Two Numbers',
+restrict:'❌ Do NOT use if / else\n❌ Do NOT use for / while loops',
+hint:'💡 Use ternary expression or max() function',
+example:'a, b = 5, 10\nOutput: 10',
+question:'Write a Python program to print the maximum of two numbers WITHOUT using if/else or any loops.',
+type:'code',ph:'a, b = map(int, input().split())\n# write here\nprint(...)'},
+
+{id:'py3',tag:'judge',tc:'tg-judge',cls:'judge',title:'Q3 — Judge the Code',
+problem:'Check whether a string is a Palindrome.\nExample: "madam" → Palindrome | "hello" → Not Palindrome',
+sols:[
+{l:'Solution A',c:`s = input()
+if s == s[::-1]:
+    print("Palindrome")
+else:
+    print("Not Palindrome")`},
+{l:'Solution B',c:`s = input()
+l, r = 0, len(s)-1
+flag = True
+while l < r:
+    if s[l] != s[r]:
+        flag = False; break
+    l += 1; r -= 1
+print("Palindrome" if flag else "Not Palindrome")`},
+{l:'Solution C',c:`s = input()
+if s in ["madam","racecar","level"]:
+    print("Palindrome")
+else:
+    print("Not Palindrome")`}],
+question:'Which Python solution is BEST? Pick A, B, or C.\nJustify: Time Complexity · Space Complexity · Readability',
+type:'judge'},
+
+{id:'py4',tag:'bug',tc:'tg-bug',cls:'bug',title:'Q4 — One Bug, Many Fixes',
+problem:'Find the factorial of a number.\nExample: Input: 5 → Output: 120',
+code:`n = int(input())
+fact = 0
+for i in range(1, n+1):
+    fact = fact * i
+print(fact)`,
+question:'Identify the bug. Write the corrected line and explain why it was wrong.',
+type:'text',ph:'Bug at line: ...\nCorrected: ...\nExplanation: ...'},
+
+{id:'py5',tag:'game',tc:'tg-game',cls:'game',title:'Q5 — Game Logic Problem',
+problem:'3-Round Game Score Calculator\nWin → +10 | Lose → −5 | Draw → 0',
+example:'Input:  W L D\nOutput: 5\n\nInput:  W W W\nOutput: 30',
+question:'Write a Python program that reads 3 round results (W L D) and prints the final score.',
+type:'code',ph:'results = input().split()\nscore = 0\n# write here\nprint(score)'}
+],
+
+CPP:[
+{id:'cpp1',tag:'fill',tc:'tg-fill',cls:'fill',title:'Q1 — Incomplete Project',
+problem:'Find the sum of digits of a number.\nExample: Input: 1234 → Output: 10 (1+2+3+4)',
+code:`#include <iostream>
+using namespace std;
+int main() {
+    int n, sum = 0, digit;
+    cin >> n;
+    while(n > 0) {
+        digit = _______;      // Blank 1
+        sum = _______;        // Blank 2
+        n = _______;          // Blank 3
+    }
+    cout << sum;
+    return 0;
+}`,
+question:'Fill in the three blanks to complete the C++ program.\nWrite what Blank 1, Blank 2, and Blank 3 should be.',
+type:'text',ph:'Blank 1: ...\nBlank 2: ...\nBlank 3: ...'},
+
+{id:'cpp2',tag:'logic',tc:'tg-logic',cls:'logic',title:'Q2 — Code Without Keywords',
+problem:'Find Maximum of Two Numbers',
+restrict:'❌ Do NOT use if / else\n❌ Do NOT use for / while loops',
+hint:'💡 Use ternary operator or std::max()',
+example:'Input: 5 10\nOutput: 10',
+question:'Write a complete C++ program to print the maximum of two integers WITHOUT using if/else or any loops.',
+type:'code',ph:'#include <iostream>\nusing namespace std;\nint main() {\n    int a, b;\n    cin >> a >> b;\n    // write here\n    return 0;\n}'},
+
+{id:'cpp3',tag:'judge',tc:'tg-judge',cls:'judge',title:'Q3 — Judge the Code',
+problem:'Check whether a number is a palindrome.\nExample: 121 → Palindrome | 123 → Not Palindrome',
+sols:[
+{l:'Solution A',c:`int n,rev=0,temp,digit;
+cin>>n; temp=n;
+while(temp>0){
+  digit=temp%10;
+  rev=rev*10+digit;
+  temp/=10;
+}
+cout<<(rev==n?"Palindrome":"Not Palindrome");`},
+{l:'Solution B',c:`string s; cin>>s;
+string r=s;
+reverse(r.begin(),r.end());
+cout<<(s==r?"Palindrome":"Not Palindrome");`},
+{l:'Solution C',c:`int n; cin>>n;
+if(n==121||n==131||n==141)
+  cout<<"Palindrome";
+else
+  cout<<"Not Palindrome";`}],
+question:'Which C++ solution is BEST? Pick A, B, or C.\nJustify: Time Complexity · Space Complexity · Readability',
+type:'judge'},
+
+{id:'cpp4',tag:'bug',tc:'tg-bug',cls:'bug',title:'Q4 — One Bug, Many Fixes',
+problem:'Find the factorial of a number.\nExample: Input: 5 → Output: 120',
+code:`#include <iostream>
+using namespace std;
+int main() {
+    int n, fact = 0;
+    cin >> n;
+    for(int i = 1; i <= n; i++) {
+        fact = fact * i;
+    }
+    cout << fact;
+    return 0;
+}`,
+question:'Identify the bug. Write the corrected line and explain why it was wrong.',
+type:'text',ph:'Bug at line: ...\nCorrected: ...\nExplanation: ...'},
+
+{id:'cpp5',tag:'game',tc:'tg-game',cls:'game',title:'Q5 — Game Logic Problem',
+problem:'3-Round Game Score Calculator\nWin → +10 | Lose → −5 | Draw → 0',
+example:'Input:  W L D\nOutput: 5\n\nInput:  W W W\nOutput: 30',
+question:'Write a complete C++ program that reads 3 round results (W/L/D) and prints the final score.',
+type:'code',ph:'#include <iostream>\nusing namespace std;\nint main() {\n    char r1,r2,r3;\n    cin>>r1>>r2>>r3;\n    int score=0;\n    // write here\n    cout<<score;\n    return 0;\n}'}
+]};
+
+const STAR_LABELS=['','Poor 😞','Fair 😐','Good 😊','Great 😄','Excellent 🤩'];
+const QUOTES=['\"First, solve the problem. Then, write the code.\" — John Johnson','\"Code is like humor. When you have to explain it, it\'s bad.\" — Cory House','\"Every expert was once a beginner. Keep pushing!\"','\"Programming isn\'t about what you know; it\'s about what you can figure out.\" — Chris Pine'];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let P=null, ANS={}, JC={};
+let tInt=null, tLeft=30*60, viols=0, done=false, sub=null, proc=false;
+let fbRating=0, fbText='';
+
+// ══════════════════════════════════════════
+// DB — Firebase (primary) + localStorage (fallback)
+// ══════════════════════════════════════════
+const DK='csbs_db4';
+function gDB(){try{return JSON.parse(localStorage.getItem(DK))||{p:[]};}catch{return{p:[]};}}
+function sDB(d){localStorage.setItem(DK,JSON.stringify(d));}
+
+// Save participant to both localStorage AND Firebase
+function upsert(p){
+  const d=gDB();
+  const i=d.p.findIndex(x=>x.id===p.id);
+  if(i>=0)d.p[i]=p; else d.p.push(p);
+  sDB(d);
+  const doWrite=()=>{
+    if(window._fbReady && window._fbDB){
+      window._fbDB.collection('participants').doc(p.id)
+        .set(p,{merge:true})
+        .catch(e=>console.warn('Firebase write error:',e));
+    }
+  };
+  if(window._fbReady) doWrite();
+  else window._fbPendingWrites.push(doWrite);
+}
+
+// Subscribe to Firebase for admin live updates
+let _fbUnsub=null;
+function subscribeFirebase(onData){
+  if(!window._fbReady||!window._fbDB){onData(gDB().p);return;}
+  if(_fbUnsub)_fbUnsub();
+  _fbUnsub=window._fbDB.collection('participants')
+    .onSnapshot(snap=>{
+      const list=[];
+      snap.forEach(d=>list.push(d.data()));
+      sDB({p:list});
+      onData(list);
+    }, err=>{
+      console.warn('Firebase listen error:',err);
+      onData(gDB().p);
+    });
+}
+
+// Save marks from admin
+function saveMarkRemote(pid,marks){
+  if(!window._fbReady||!window._fbDB)return;
+  window._fbDB.collection('participants').doc(pid)
+    .set({marks},{merge:true})
+    .catch(e=>console.warn(e));
+}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+let tT;
+function toast(m,t='inf'){
+  const el=document.getElementById('toast');
+  el.textContent=m; el.className=`show ${t}`;
+  clearTimeout(tT); tT=setTimeout(()=>el.className='',3500);
+}
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function fdt(ts){if(!ts)return'—';return new Date(ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+function slbl(s){return s==='CPP'?'C++':s;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ══════════════════════════════════════════
+// LOGIN → RULES
+// ══════════════════════════════════════════
+function doLogin(){
+  const n=document.getElementById('lName').value.trim();
+  const c=document.getElementById('lCollege').value.trim();
+  const p=document.getElementById('lPass').value;
+  if(!n){toast('Enter your name','err');return;}
+  if(!c){toast('Enter your college','err');return;}
+  if(!p){toast('Enter password','err');return;}
+  if(p!=='csbs2k26'){toast('Wrong password!','err');return;}
+  P={id:'P_'+Date.now(),name:n,college:c,loginTime:Date.now(),status:'Active',subject:null,warnings:0,submitTime:null,logoutTime:null,answers:{},marks:null,feedback:null};
+  upsert(P);
+  // reset rules checkbox
+  document.getElementById('agreeChk').checked=false;
+  document.getElementById('proceedBtn').disabled=true;
+  go('rulesPage');
+}
+
+// ══════════════════════════════════════════
+// RULES
+// ══════════════════════════════════════════
+function toggleAgree(){
+  const chk=document.getElementById('agreeChk');
+  chk.checked=!chk.checked;
+  document.getElementById('proceedBtn').disabled=!chk.checked;
+}
+function goToSubject(){
+  if(!document.getElementById('agreeChk').checked){toast('Please agree to the rules first','war');return;}
+  go('subjectPage');
+}
+
+// ══════════════════════════════════════════
+// SUBJECT
+// ══════════════════════════════════════════
+function pickSub(s){
+  sub=s;
+  document.querySelectorAll('.subj-card').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('sub-'+s).classList.add('sel');
+  document.getElementById('startBtn').disabled=false;
+}
+function startExam(){
+  if(!sub){toast('Pick a subject!','err');return;}
+  P.subject=sub; upsert(P);
+  ANS={}; JC={}; tLeft=30*60; viols=0; done=false;
+  document.getElementById('hSub').textContent=slbl(sub);
+  document.getElementById('hName').textContent=P.name;
+  renderExam(); go('examPage');
+  startTimer(); setTimeout(enableProc,900);
+}
+
+// ══════════════════════════════════════════
+// EXAM RENDER
+// ══════════════════════════════════════════
+function renderExam(){
+  const qs=QS[sub], body=document.getElementById('examBody');
+  body.innerHTML='';
+  qs.forEach((q,i)=>{
+    const card=document.createElement('div');
+    card.className=`qcard ${q.cls}`; card.id='qc-'+q.id;
+    let h=`<span class="qtag ${q.tc}">${q.tag.toUpperCase()}</span>`;
+    h+=`<div class="qnum">QUESTION ${i+1} OF 5</div>`;
+    h+=`<div class="qtitle">${q.title}</div>`;
+    if(q.problem) h+=`<div class="qproblem">${esc(q.problem)}</div>`;
+    if(q.restrict) h+=`<div class="qrestrict">${esc(q.restrict)}</div>`;
+    if(q.hint) h+=`<div class="qhint">${esc(q.hint)}</div>`;
+    if(q.example) h+=`<div class="qexample"><strong style="color:var(--accent3)">Example:</strong>\n${esc(q.example)}</div>`;
+    if(q.code) h+=`<div class="qcode">${esc(q.code)}</div>`;
+    if(q.type==='judge'&&q.sols){
+      h+=`<div class="sols-grid">`;
+      q.sols.forEach(s=>{h+=`<div class="sol-block"><div class="sol-lbl">${s.l}</div><div class="sol-code">${esc(s.c)}</div></div>`;});
+      h+=`</div>`;
+    }
+    h+=`<div class="qquestion">${esc(q.question)}</div>`;
+    h+=`<div class="ans-lbl">YOUR ANSWER</div>`;
+    if(q.type==='judge'){
+      const cur=JC[q.id]||'';
+      h+=`<div class="jbtns">`;
+      ['A','B','C'].forEach(o=>{h+=`<button class="jbtn ${cur===o?'jsel':''}" id="jb-${q.id}-${o}" onclick="pickJ('${q.id}','${o}')">Solution ${o}</button>`;});
+      h+=`</div>`;
+    }
+    const rows=q.type==='code'?10:5;
+    h+=`<textarea class="ans-ta" id="ta-${q.id}" rows="${rows}" oninput="onAns('${q.id}',this)"></textarea>`;
+    h+=`<div class="cc" id="cc-${q.id}" style="visibility:hidden">0 chars</div>`;
+    card.innerHTML=h; body.appendChild(card);
+  });
+  updProg();
+}
+
+function pickJ(qid,opt){
+  JC[qid]=opt;
+  ['A','B','C'].forEach(o=>{const b=document.getElementById(`jb-${qid}-${o}`);if(b)b.className='jbtn'+(o===opt?' jsel':'');});
+  const ta=document.getElementById('ta-'+qid);
+  const existing=(ta.value||'').replace(/^My choice: Solution [ABC]\n?/,'');
+  ta.value=`My choice: Solution ${opt}\n${existing}`;
+  ANS[qid]=ta.value;
+  document.getElementById('cc-'+qid).textContent=ta.value.length+' chars';
+  updProg();
+}
+function onAns(qid,ta){ANS[qid]=ta.value;const cc=document.getElementById('cc-'+qid);cc.style.visibility='visible';cc.textContent=ta.value.length+' chars';updProg();}
+function updProg(){
+  const f=Object.keys(ANS).filter(k=>ANS[k]&&ANS[k].trim().length>0).length;
+  document.getElementById('ansCnt').textContent=f;
+  document.getElementById('pb').style.width=(f/5*100)+'%';
+}
+
+// ══════════════════════════════════════════
+// TIMER
+// ══════════════════════════════════════════
+function startTimer(){
+  clearInterval(tInt);
+  const el=document.getElementById('timerEl');
+  tInt=setInterval(()=>{
+    tLeft--; el.textContent=fmt(tLeft);
+    if(tLeft<=300)el.classList.add('urg');
+    if(tLeft<=0){clearInterval(tInt);toast('Time up! Auto-submitting...','war');submitExam(true);}
+  },1000);
+}
+
+// ══════════════════════════════════════════
+// PROCTORING
+// ══════════════════════════════════════════
+function enableProc(){proc=true;document.addEventListener('visibilitychange',onVis);document.addEventListener('keydown',onKey);document.addEventListener('contextmenu',onRC);document.addEventListener('copy',onCp);}
+function disableProc(){proc=false;document.removeEventListener('visibilitychange',onVis);document.removeEventListener('keydown',onKey);document.removeEventListener('contextmenu',onRC);document.removeEventListener('copy',onCp);}
+function onVis(){if(!proc||done)return;if(document.hidden)trigV('Tab Switch Detected');}
+function onKey(e){if(!proc||done)return;if((e.ctrlKey||e.metaKey)&&e.key==='c'){e.preventDefault();trigV('Copy Attempt (Ctrl+C)');}}
+function onRC(e){if(!proc||done)return;e.preventDefault();trigV('Right-Click Detected');}
+function onCp(e){if(!proc||done)return;e.preventDefault();trigV('Copy Detected');}
+
+function trigV(r){
+  viols++; P.warnings=viols;
+  if(viols===1){
+    P.status='Warning'; upsert(P);
+    showWarn('⚠️ FIRST WARNING',r+'\n\nThis is your first warning. One more violation will result in automatic disqualification!',false);
+  } else {
+    P.status='Disqualified'; P.logoutTime=Date.now(); upsert(P);
+    showWarn('🚫 DISQUALIFIED',r+'\n\nYou have been automatically disqualified due to repeated violations.',true);
+  }
+}
+function showWarn(t,m,disq){
+  document.getElementById('wTitle').textContent=t;
+  document.getElementById('wMsg').textContent=m;
+  document.getElementById('wAck').style.display=disq?'none':'';
+  document.getElementById('warnOv').classList.add('show');
+  if(disq){clearInterval(tInt);disableProc();setTimeout(()=>{document.getElementById('warnOv').classList.remove('show');showTY('disqualified');},3500);}
+}
+function ackWarn(){document.getElementById('warnOv').classList.remove('show');toast('Warning noted. Stay focused!','war');}
+
+// ══════════════════════════════════════════
+// SUBMIT / LOGOUT
+// ══════════════════════════════════════════
+function submitExam(auto=false){
+  if(done)return; done=true; disableProc(); clearInterval(tInt);
+  P.answers=ANS; P.submitTime=Date.now();
+  if(P.status!=='Disqualified')P.status='Submitted';
+  upsert(P);
+  toast(auto?'Time up! Auto-submitted.':'Submitted! Please give feedback.','ok');
+  setTimeout(()=>go('feedbackPage'),900);
+}
+
+function confirmLogout(){
+  if(done){showTY('logout');return;}
+  if(confirm('Logout now? Your current answers will be saved.')){
+    clearInterval(tInt); disableProc();
+    P.logoutTime=Date.now(); P.answers=ANS;
+    if(['Active','Warning'].includes(P.status))P.status='Logged Out';
+    upsert(P); showTY('logout');
+  }
+}
+
+// ══════════════════════════════════════════
+// FEEDBACK
+// ══════════════════════════════════════════
+function rateStar(n){
+  fbRating=n;
+  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('active',i<n));
+  document.getElementById('starLabel').textContent=STAR_LABELS[n]||'';
+}
+function submitFeedback(){
+  fbText=document.getElementById('fbText').value.trim();
+  if(fbRating===0){toast('Please give a star rating!','war');return;}
+  P.feedback={rating:fbRating,text:fbText,time:Date.now()};
+  upsert(P);
+  toast('Thank you for your feedback!','ok');
+  setTimeout(()=>showTY('submitted'),700);
+}
+
+// ══════════════════════════════════════════
+// THANK YOU
+// ══════════════════════════════════════════
+function showTY(reason){
+  const icons={submitted:'🏆',logout:'👋',disqualified:'🔴'};
+  const subs={submitted:'Your exam has been submitted! 🎉',logout:'Thank you for participating!',disqualified:'Your session has ended.'};
+  document.getElementById('tyIcon').textContent=icons[reason]||'🚀';
+  document.getElementById('tySub').textContent=subs[reason];
+  const f=Object.keys(ANS).filter(k=>ANS[k]&&ANS[k].trim()).length;
+  document.getElementById('tyStats').innerHTML=`
+    <div class="ty-st"><div class="ty-sv">${P.name.split(' ')[0]}</div><div class="ty-sl">Participant</div></div>
+    <div class="ty-st"><div class="ty-sv">${slbl(P.subject)||'—'}</div><div class="ty-sl">Subject</div></div>
+    <div class="ty-st"><div class="ty-sv">${f}/5</div><div class="ty-sl">Answered</div></div>
+    <div class="ty-st"><div class="ty-sv">${P.warnings}</div><div class="ty-sl">Warnings</div></div>`;
+
+  // show feedback summary
+  const fbDiv=document.getElementById('tyFbShown');
+  if(P.feedback&&P.feedback.rating){
+    fbDiv.style.display='block';
+    document.getElementById('tyFbStars').textContent='⭐'.repeat(P.feedback.rating)+' '+STAR_LABELS[P.feedback.rating];
+    document.getElementById('tyFbText').textContent=P.feedback.text||'No comments provided.';
+  } else fbDiv.style.display='none';
+
+  const q=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+  document.getElementById('tyQ').innerHTML=`<strong style="color:var(--accent);font-size:1rem;">"Thank you for your participation!"</strong><br><br>🚀 Keep growing and keep coding!<br>💡 Happy Learning!<br><br><em style="color:var(--text3)">${q}</em>`;
+  go('tyPage');
+}
+
+// ══════════════════════════════════════════
+// LOGOUT → back to LOGIN (cleared)
+// ══════════════════════════════════════════
+function doLogout(){
+  if(P){P.logoutTime=Date.now();if(['Active','Warning','Submitted'].includes(P.status))P.status='Logged Out';upsert(P);}
+  // reset all state
+  P=null; ANS={}; JC={}; fbRating=0; fbText=''; sub=null; done=false; viols=0;
+  clearInterval(tInt); disableProc();
+  // clear login fields
+  document.getElementById('lName').value='';
+  document.getElementById('lCollege').value='';
+  document.getElementById('lPass').value='';
+  // reset subject selection
+  document.querySelectorAll('.subj-card').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('startBtn').disabled=true;
+  // reset feedback stars
+  document.querySelectorAll('.star').forEach(s=>s.classList.remove('active'));
+  document.getElementById('starLabel').textContent='';
+  document.getElementById('fbText').value='';
+  go('loginPage');
+}
+
+// ══════════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════════
+function adminLogin(){
+  if(document.getElementById('aUser').value==='admin'&&document.getElementById('aPass').value==='admin123')
+    {go('adminPage');startAR();}
+  else toast('Invalid credentials!','err');
+}
+function adminLogout(){
+  clearInterval(aInt);
+  if(_fbUnsub){_fbUnsub();_fbUnsub=null;}
+  go('loginPage');
+}
+let aInt;
+function startAR(){
+  clearInterval(aInt);
+  if(window._fbReady && window._fbDB){
+    // Firebase already ready
+    subscribeFirebase(function(list){ renderAdmin(list); });
+  } else {
+    // Firebase not ready yet — show local data and wait
+    renderAdmin(gDB().p);
+    var retries = 0;
+    var waitFB = setInterval(function(){
+      retries++;
+      if(window._fbReady && window._fbDB){
+        clearInterval(waitFB);
+        clearInterval(aInt);
+        subscribeFirebase(function(list){ renderAdmin(list); });
+        console.log("Firebase connected after " + retries + " retries");
+      } else if(retries > 20){
+        // After 10s give up and just poll localStorage
+        clearInterval(waitFB);
+        aInt = setInterval(function(){ renderAdmin(gDB().p); }, 3000);
+        console.warn("Firebase unavailable — using localStorage only");
+      }
+    }, 500);
+  }
+}
+
+function renderAdmin(list){
+  if(!list) list=gDB().p;
+  const c={total:list.length,a:0,w:0,d:0,s:0};
+  list.forEach(x=>{if(x.status==='Active')c.a++;else if(x.status==='Warning')c.w++;else if(x.status==='Disqualified')c.d++;else if(x.status==='Submitted')c.s++;});
+  document.getElementById('statsRow').innerHTML=`
+    <div class="sc c5"><div class="sv">${c.total}</div><div class="sl">Total</div></div>
+    <div class="sc c1"><div class="sv">${c.a}</div><div class="sl">Active</div></div>
+    <div class="sc c2"><div class="sv">${c.w}</div><div class="sl">Warning</div></div>
+    <div class="sc c3"><div class="sv">${c.d}</div><div class="sl">Disqualified</div></div>
+    <div class="sc c4"><div class="sv">${c.s}</div><div class="sl">Submitted</div></div>`;
+
+  document.getElementById('ovTb').innerHTML=list.map((p,i)=>`
+    <tr><td style="color:var(--text3);font-family:'JetBrains Mono';font-size:0.76rem">${i+1}</td>
+    <td>${p.name}</td><td>${p.college}</td>
+    <td style="font-family:'JetBrains Mono';color:var(--accent)">${slbl(p.subject)||'—'}</td>
+    <td>${badge(p.status)}</td>
+    <td style="color:${p.warnings>0?'var(--warn)':'var(--text3)'}">${p.warnings}</td>
+    <td style="font-family:'JetBrains Mono';font-size:0.74rem">${fdt(p.loginTime)}</td></tr>
+  `).join('')||noPart(7);
+
+  document.getElementById('ptTb').innerHTML=list.map((p,i)=>`
+    <tr><td style="color:var(--text3);font-family:'JetBrains Mono';font-size:0.76rem">${i+1}</td>
+    <td>${p.name}</td><td>${p.college}</td>
+    <td style="font-family:'JetBrains Mono';color:var(--accent)">${slbl(p.subject)||'—'}</td>
+    <td>${badge(p.status)}</td>
+    <td style="color:${p.warnings>0?'var(--warn)':'var(--text3)'}">${p.warnings}</td>
+    <td style="font-family:'JetBrains Mono';font-size:0.73rem">${fdt(p.loginTime)}</td>
+    <td style="font-family:'JetBrains Mono';font-size:0.73rem">${fdt(p.submitTime)}</td>
+    <td style="font-family:'JetBrains Mono';font-size:0.73rem">${fdt(p.logoutTime)}</td>
+    <td><input type="number" class="minp" id="mi-${p.id}" value="${p.marks!=null?p.marks:''}" min="0" max="50" placeholder="—" onchange="saveMark('${p.id}')" onblur="saveMark('${p.id}')"></td>
+    <td><button class="abtn" onclick="saveMark('${p.id}')">SAVE</button></td>
+    <td><button class="abtn v" onclick="viewAns('${p.id}')">VIEW</button></td>
+    <td><button class="abtn" style="border-color:var(--danger);color:var(--danger);" onclick="deleteParticipant('${p.id}','${p.name}')">DELETE</button></td></tr>
+  `).join('')||noPart(12);
+
+  // Feedback tab
+  const withFb=list.filter(p=>p.feedback&&p.feedback.rating);
+  document.getElementById('fbTb').innerHTML=withFb.map((p,i)=>`
+    <tr><td style="color:var(--text3);font-family:'JetBrains Mono';font-size:0.76rem">${i+1}</td>
+    <td>${p.name}</td><td>${p.college}</td>
+    <td style="font-family:'JetBrains Mono';color:var(--accent)">${slbl(p.subject)||'—'}</td>
+    <td style="font-size:1rem">${'⭐'.repeat(p.feedback.rating)} <span style="color:var(--text3);font-size:0.75rem">${STAR_LABELS[p.feedback.rating]}</span></td>
+    <td style="max-width:260px;white-space:normal;color:var(--text2);font-size:0.83rem">${p.feedback.text||'—'}</td></tr>
+  `).join('')||`<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px">No feedback yet</td></tr>`;
+
+  buildLB(list);
+}
+
+function noPart(cols){return`<tr><td colspan="${cols}" style="text-align:center;color:var(--text3);padding:24px">No participants yet</td></tr>`;}
+function badge(s){const m={'Active':'ba','Warning':'bw','Disqualified':'bd','Submitted':'bs','Logged Out':'bo'};return`<span class="sb ${m[s]||'bo'}">${s}</span>`;}
+
+function saveMark(pid){
+  const v=parseFloat(document.getElementById('mi-'+pid).value);
+  if(isNaN(v)||v<0){toast('Enter valid marks!','err');return;}
+  const d=gDB();const p=d.p.find(x=>x.id===pid);
+  if(p){
+    p.marks=v;sDB(d);
+    // save to Firebase too
+    saveMarkRemote(pid, v);
+    // flash the row
+    const row=document.getElementById('mi-'+pid).closest('tr');
+    if(row){row.classList.remove('marks-updated');void row.offsetWidth;row.classList.add('marks-updated');}
+    toast('✓ Marks saved for '+p.name,'ok');
+    buildLB(d.p);
+  }
+}
+
+function buildLB(list){
+  const ranked=[...list].filter(p=>p.marks!=null&&p.marks>=0).sort((a,b)=>b.marks-a.marks);
+  const el=document.getElementById('lbVisual');
+  if(!ranked.length){
+    el.innerHTML=`<div class="lb-empty">🏆 No marks assigned yet.<br><span style="font-size:0.78rem;opacity:0.5">Enter and save marks in the Participants tab.</span></div>`;
+    return;
+  }
+  const maxM=Math.max(...ranked.map(p=>p.marks),1);
+  let h='<div class="lb-wrap">';
+
+  // PODIUM for top 3
+  if(ranked.length>=1){
+    h+=`<div class="lb-section-title">TOP PERFORMERS</div>`;
+    h+=`<div class="lb-podium">`;
+    // order: 2nd, 1st, 3rd
+    const order=[1,0,2].filter(i=>ranked[i]);
+    order.forEach(i=>{
+      const p=ranked[i];
+      const cls=i===0?'pod-1':i===1?'pod-2':'pod-3';
+      const icon=i===0?'🥇':i===1?'🥈':'🥉';
+      h+=`<div class="pod-block ${cls}">
+        <div class="pod-name">${p.name}</div>
+        <div class="pod-college">${p.college}</div>
+        <div class="pod-score">${p.marks}</div>
+        <div class="pod-base" style="position:relative;">
+          <div class="pod-rank-icon">${icon}</div>
+          <div class="pod-sub-lbl">${slbl(p.subject)||''}</div>
+        </div>
+      </div>`;
+    });
+    h+=`</div><div class="pod-floor"></div>`;
+  }
+
+  // BAR CHART for all
+  h+=`<div class="lb-section-title">FULL RANKINGS</div>`;
+  h+=`<div class="lb-bars">`;
+  const rCls=['r1','r2','r3'];
+  ranked.forEach((p,i)=>{
+    const pct=Math.round((p.marks/maxM)*100);
+    const rc=rCls[i]||'rn';
+    const rankDisp=i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`;
+    h+=`<div class="bar-row ${rc}">
+      <div class="bar-rank">${rankDisp}</div>
+      <div class="bar-info">
+        <div class="bar-name">${p.name}</div>
+        <div class="bar-meta">${p.college} · ${slbl(p.subject)||'—'} · ${badge(p.status)}</div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="bar-marks">${p.marks}</div>
+    </div>`;
+  });
+  h+=`</div></div>`;
+  el.innerHTML=h;
+  // animate bars after render
+  setTimeout(()=>{
+    el.querySelectorAll('.bar-fill').forEach(b=>{const w=b.style.width;b.style.width='0%';setTimeout(()=>b.style.width=w,50);});
+  },50);
+}
+function viewAns(pid){
+  const d=gDB();const p=d.p.find(x=>x.id===pid);
+  if(!p||!p.subject){toast('No data','err');return;}
+  const qs=QS[p.subject];
+  document.getElementById('modalBody').innerHTML=`
+    <div style="margin-bottom:16px;padding:12px 16px;background:var(--surface);border:1px solid var(--border)">
+      <div style="color:var(--accent);font-weight:700;letter-spacing:2px">${p.name}</div>
+      <div style="color:var(--text3);font-size:0.8rem;margin-top:3px">${p.college} · ${slbl(p.subject)}</div>
+    </div>
+    ${qs.map((q,i)=>{const a=p.answers&&p.answers[q.id];const has=a&&a.trim().length>0;
+      return`<div class="rev-q">
+        <div class="rev-qt">Q${i+1} — ${q.tag.toUpperCase()} — ${q.title}</div>
+        <div class="rev-qq">${esc(q.question)}</div>
+        <div class="rev-a ${has?'':'empty'}">${has?esc(a):'— Not answered —'}</div>
+      </div>`;}).join('')}`;
+  document.getElementById('ansModal').classList.add('show');
+}
+function closeModal(){document.getElementById('ansModal').classList.remove('show');}
+document.getElementById('ansModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+function fbDelete(pid){
+  if(window._fbReady && window._fbDB){
+    window._fbDB.collection('participants').doc(pid)
+      .delete()
+      .catch(e=>console.warn('FB delete error:',e));
+  }
+}
+
+function deleteParticipant(pid, name){
+  if(!confirm('Delete record for: ' + name + '?')) return;
+  // Remove from localStorage
+  // Remove from localStorage
+  const d=gDB();
+  d.p=d.p.filter(x=>x.id!==pid);
+  sDB(d);
+  // Remove from Firebase
+  fbDelete(pid);
+  toast('✓ Deleted: '+name,'ok');
+  renderAdmin(d.p);
+}
+
+function clearAllData(){
+  if(!confirm('Delete ALL participant data? This will remove every student record!')) return;
+  if(!confirm('Final confirm - Are you 100% sure? This CANNOT be undone!')) return;
+  const d=gDB();
+  const ids=d.p.map(p=>p.id);
+  d.p=[];
+  sDB(d);
+  // Remove all from Firebase
+  ids.forEach(id=>fbDelete(id));
+  toast('✓ All data cleared!','ok');
+  renderAdmin([]);
+}
+
+function swTab(t){
+  const tabs=['overview','participants','feedback','leaderboard'];
+  document.querySelectorAll('.adm-tab').forEach((el,i)=>el.classList.toggle('on',tabs[i]===t));
+  document.querySelectorAll('.atp').forEach(c=>c.classList.remove('on'));
+  document.getElementById('tab-'+t).classList.add('on');
+}
+
+function copySnip(){
+  var txt = 'const firebaseConfig = { apiKey: "YOUR_API_KEY", projectId: "YOUR_PROJECT_ID" }';
+  navigator.clipboard.writeText(txt).then(function(){ toast('Copied!','ok'); });
+}
+
+// Show banner if Firebase not configured (only in admin or setup context)
+window.addEventListener('DOMContentLoaded',()=>{
+  // Delay check to allow module to load
+  setTimeout(()=>{
+    if(!window._fbReady){
+      document.getElementById('fbBanner').style.display='flex';
+    }
+  }, 2500);
+});
+</script>
+<!-- FIREBASE NOT CONFIGURED BANNER -->
+<div id="fbBanner" style="display:none;" class="fb-setup-banner">
+  <div class="fb-msg"><strong>⚠️ FIREBASE NOT CONFIGURED</strong> — Students on other devices cannot submit. <span style="color:var(--text2);">Click to see setup guide.</span></div>
+  <button class="btn y" onclick="go('setupPage')" style="padding:6px 16px;font-size:0.74rem;flex-shrink:0;">SETUP GUIDE →</button>
+  <button onclick="document.getElementById('fbBanner').style.display='none'" style="background:none;border:none;color:var(--text3);font-size:1.2rem;cursor:pointer;flex-shrink:0;">✕</button>
+</div>
+
+<!-- SETUP GUIDE PAGE -->
+<div class="page setup-page" id="setupPage">
+  <div class="setup-wrap fade-up">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap;">
+      <button class="btn" onclick="go('loginPage')" style="padding:7px 16px;font-size:0.74rem;">← BACK</button>
+      <div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.2rem;color:var(--accent);letter-spacing:4px;">FIREBASE SETUP GUIDE</div>
+        <div style="font-size:0.74rem;color:var(--text3);letter-spacing:3px;text-transform:uppercase;margin-top:2px;">Connect students across all devices · Free · 10 mins</div>
+      </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div class="setup-card">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--accent3);letter-spacing:3px;margin-bottom:16px;">HOW IT WORKS</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;text-align:center;">
+        <div style="background:var(--surface);padding:16px;border:1px solid var(--border);">
+          <div style="font-size:1.8rem;margin-bottom:6px;">👨‍💻</div>
+          <div style="font-size:0.8rem;color:var(--text2);line-height:1.5;">Student opens HTML on <strong style="color:var(--text)">their device</strong></div>
+        </div>
+        <div style="background:var(--surface);padding:16px;border:1px solid var(--border);font-size:1.5rem;display:flex;align-items:center;justify-content:center;">→</div>
+        <div style="background:var(--surface);padding:16px;border:1px solid var(--border);">
+          <div style="font-size:1.8rem;margin-bottom:6px;">☁️</div>
+          <div style="font-size:0.8rem;color:var(--text2);line-height:1.5;">Data saved to <strong style="color:var(--text)">Firebase cloud</strong></div>
+        </div>
+        <div style="background:var(--surface);padding:16px;border:1px solid var(--border);font-size:1.5rem;display:flex;align-items:center;justify-content:center;">→</div>
+        <div style="background:var(--surface);padding:16px;border:1px solid var(--border);">
+          <div style="font-size:1.8rem;margin-bottom:6px;">🖥️</div>
+          <div style="font-size:0.8rem;color:var(--text2);line-height:1.5;">You see it live on <strong style="color:var(--text)">your admin dashboard</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="setup-card">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--accent3);letter-spacing:3px;margin-bottom:16px;">STEP 1 — CREATE FIREBASE PROJECT (FREE)</div>
+      <div class="setup-step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Go to Firebase Console</div>
+          <div class="step-desc">Open <a href="https://console.firebase.google.com" target="_blank" class="step-link">console.firebase.google.com</a> and sign in with your Google account.</div>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Create New Project</div>
+          <div class="step-desc">Click <strong style="color:var(--accent)">"Add project"</strong> → Name it <strong style="color:var(--accent)">csbs-exam</strong> → Disable Google Analytics → Click "Create project".</div>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Add a Web App</div>
+          <div class="step-desc">In your project, click the <strong style="color:var(--accent)">&lt;/&gt; (Web)</strong> icon → Register app as <strong style="color:var(--accent)">csbs-exam-web</strong> → Copy the <code style="color:var(--accent3)">firebaseConfig</code> object shown.</div>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Enable Firestore Database</div>
+          <div class="step-desc">In left sidebar → <strong style="color:var(--accent)">Build → Firestore Database</strong> → Click "Create database" → Choose <strong style="color:var(--accent)">"Start in test mode"</strong> → Select your region → Done.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="setup-card">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--accent3);letter-spacing:3px;margin-bottom:16px;">STEP 2 — PASTE CONFIG INTO THIS FILE</div>
+      <div class="step-desc" style="margin-bottom:14px;">Open this HTML file in a text editor (Notepad, VS Code). Find this section near the top and replace with your actual values:</div>
+      <div class="code-snippet" id="configSnippet">  const firebaseConfig = {
+    apiKey:            "YOUR_API_KEY",           // ← paste your value
+    authDomain:        "YOUR_PROJECT.firebaseapp.com",
+    projectId:         "YOUR_PROJECT_ID",        // ← e.g. "csbs-exam-abc12"
+    storageBucket:     "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId:             "YOUR_APP_ID"
+  };<button class="copy-snip" onclick="copySnip()">COPY</button></div>
+      <div style="font-size:0.8rem;color:var(--text3);margin-top:10px;">💡 Your config looks like: apiKey: "AIzaSy...", projectId: "csbs-exam-abc12", etc.</div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="setup-card">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--accent3);letter-spacing:3px;margin-bottom:16px;">STEP 3 — HOST THE FILE (SHARE WITH STUDENTS)</div>
+      <div class="step-desc" style="margin-bottom:14px;">Students need to open the same HTML file. Pick the easiest hosting method:</div>
+      <div class="host-options">
+        <div class="host-card">
+          <div class="host-badge">EASIEST · FREE</div>
+          <div class="host-name">📄 Google Drive</div>
+          <div class="host-desc">Upload HTML to Drive → Right click → Share → "Anyone with link" → Copy link → Send to students</div>
+          <div style="font-size:0.72rem;color:var(--danger);margin-top:6px;">⚠️ Drive preview won't work — students must click "Open with → Chrome"</div>
+        </div>
+        <div class="host-card">
+          <div class="host-badge">BEST · FREE</div>
+          <div class="host-name">🌐 GitHub Pages</div>
+          <div class="host-desc">Create free GitHub account → New repo → Upload HTML as index.html → Enable Pages → Share the URL</div>
+          <div style="font-size:0.72rem;color:var(--accent3);margin-top:6px;">✓ Proper URL, works on any device, mobile-friendly</div>
+        </div>
+        <div class="host-card">
+          <div class="host-badge">INSTANT · FREE</div>
+          <div class="host-name">⚡ Netlify Drop</div>
+          <div class="host-desc">Go to <strong>app.netlify.com/drop</strong> → Drag and drop the HTML file → Get instant URL in seconds</div>
+          <div style="font-size:0.72rem;color:var(--accent3);margin-top:6px;">✓ Fastest option, no account needed</div>
+        </div>
+        <div class="host-card">
+          <div class="host-badge">WIFI ONLY</div>
+          <div class="host-name">📡 Local Network</div>
+          <div class="host-desc">Run a local server on your laptop and share IP. All students must be on the same WiFi network.</div>
+          <div style="font-size:0.72rem;color:var(--text3);margin-top:6px;">Use: python3 -m http.server 8080</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FIRESTORE RULES -->
+    <div class="setup-card">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--warn);letter-spacing:3px;margin-bottom:14px;">⚠️ FIRESTORE SECURITY RULES (IMPORTANT)</div>
+      <div class="step-desc" style="margin-bottom:12px;">In Firebase Console → Firestore → Rules tab, paste these rules to allow students to write but not read each other's data:</div>
+      <div class="code-snippet">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /participants/{pid} {
+      allow write: if true;          // students can submit
+      allow read: if false;          // students cannot read others
+    }
+  }
+}</div>
+      <div style="font-size:0.8rem;color:var(--text3);margin-top:10px;">Admin reads happen through the Firebase console / admin SDK. For this app, admin login reads all data — you can tighten rules later.</div>
+    </div>
+
+    <div style="text-align:center;padding:16px 0 32px;">
+      <button class="btn g" onclick="go('loginPage')" style="margin:0 auto;">← BACK TO EXAM</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
